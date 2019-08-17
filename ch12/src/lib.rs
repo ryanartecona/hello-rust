@@ -5,7 +5,6 @@ use std::error::Error;
 const CMD_NAME: &'static str = "minigrep";
 
 pub struct Config {
-    command: String,
     query: String,
     filename: String,
     case_sensitive: bool,
@@ -14,8 +13,7 @@ pub struct Config {
 impl Config {
     pub fn from_argv(argv: &[String]) -> Result<Config, String> {
         match argv {
-            [command, query, filename] => Ok(Config {
-                command: command.to_string(),
+            [_command, query, filename] => Ok(Config {
                 query: query.to_string(),
                 filename: filename.to_string(),
                 case_sensitive: env::var("CASE_INSENSITIVE").is_err(),
@@ -31,7 +29,9 @@ impl Config {
 pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     let file_contents = fs::read_to_string(&config.filename)?;
 
-    for matching_line in search(&config.query, &file_contents) {
+    let search_mode = if config.case_sensitive {search} else {search_case_insensitive};
+
+    for matching_line in search_mode(&config.query, &file_contents) {
       println!("{}", matching_line);
     }
 
