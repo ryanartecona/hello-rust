@@ -1,5 +1,7 @@
 use std::fs;
 use std::io::prelude::*;
+use std::thread;
+use std::time::Duration;
 use std::net::{TcpListener, TcpStream};
 
 fn main() {
@@ -15,13 +17,20 @@ fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 512];
     stream.read(&mut buffer).unwrap();
 
-    let valid_get_preamble = b"GET / HTTP/1.1\r\n";
+    let root_get_preamble = b"GET / HTTP/1.1\r\n";
+    let sleep_get_preamble = b"GET /sleep HTTP/1.1\r\n";
 
     println!("Request: {}", String::from_utf8_lossy(&buffer));
 
-    let (status_line, filename) = if buffer.starts_with(valid_get_preamble) {
+    let (status_line, filename) = if buffer.starts_with(root_get_preamble) {
         (
-            "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{}",
+            "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n",
+            "hello.html",
+        )
+    } else if buffer.starts_with(sleep_get_preamble) {
+        thread::sleep(Duration::from_secs(5));
+        (
+            "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n",
             "hello.html",
         )
     } else {
