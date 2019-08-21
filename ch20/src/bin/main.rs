@@ -1,8 +1,8 @@
 use std::fs;
 use std::io::prelude::*;
+use std::net::{TcpListener, TcpStream};
 use std::thread;
 use std::time::Duration;
-use std::net::{TcpListener, TcpStream};
 
 use webserver::ThreadPool;
 
@@ -13,7 +13,7 @@ fn main() {
     for stream in listener.incoming() {
         let stream = stream.unwrap();
         pool.execute(|| {
-        handle_connection(stream);
+            handle_connection(stream);
         })
     }
 }
@@ -25,7 +25,7 @@ fn handle_connection(mut stream: TcpStream) {
     let root_get_preamble = b"GET / HTTP/1.1\r\n";
     let sleep_get_preamble = b"GET /sleep HTTP/1.1\r\n";
 
-    println!("Request: {}", String::from_utf8_lossy(&buffer));
+    // println!("Request: {}", String::from_utf8_lossy(&buffer));
 
     let (status_line, filename) = if buffer.starts_with(root_get_preamble) {
         (
