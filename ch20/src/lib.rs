@@ -25,8 +25,8 @@ impl<F: FnOnce()> FnBox for F {
 type Job = Box<dyn FnBox + Send + 'static>;
 
 enum Message {
-  NewJob(Job),
-  Terminate,
+    NewJob(Job),
+    Terminate,
 }
 
 impl Worker {
@@ -35,18 +35,21 @@ impl Worker {
             let msg = recv.lock().unwrap().recv().unwrap();
 
             match msg {
-              Message::NewJob(job) => {
-                println!("Worker {} got a job; executing.", id);
+                Message::NewJob(job) => {
+                    println!("Worker {} got a job; executing.", id);
 
-                job.call_box();
-              },
-              Message::Terminate => {
-                println!("Worker {} shutting down.", id);
-                break
-              }
+                    job.call_box();
+                }
+                Message::Terminate => {
+                    println!("Worker {} shutting down.", id);
+                    break;
+                }
             }
         });
-        Worker { id, thread: Some(thread) }
+        Worker {
+            id,
+            thread: Some(thread),
+        }
     }
 }
 
@@ -85,16 +88,16 @@ impl Drop for ThreadPool {
     fn drop(&mut self) {
         println!("Asking workers to stop working.");
         for _ in &mut self.workers {
-          self.send.send(Message::Terminate).unwrap();
+            self.send.send(Message::Terminate).unwrap();
         }
 
         println!("Terminating workers.");
 
         for worker in &mut self.workers {
-          if let Some(thread) = worker.thread.take() {
-            println!("Cleaning up worker {}.", worker.id);
-            thread.join().unwrap();
-          }
+            if let Some(thread) = worker.thread.take() {
+                println!("Cleaning up worker {}.", worker.id);
+                thread.join().unwrap();
+            }
         }
     }
 }
